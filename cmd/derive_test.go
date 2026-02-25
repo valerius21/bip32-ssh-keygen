@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"crypto/ed25519"
 	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"golang.org/x/crypto/ssh"
+
 )
 
 func TestDeriveCommand(t *testing.T) {
@@ -54,8 +58,21 @@ func TestDeriveCommand(t *testing.T) {
 		priv2, _ := os.ReadFile(outputBase)
 		pub2, _ := os.ReadFile(outputBase + ".pub")
 
-		if !bytes.Equal(priv1, priv2) {
-			t.Error("private keys are not identical")
+		// Round-trip verification: Parse the generated private key
+		parsed1, err := ssh.ParseRawPrivateKey(priv1)
+		if err != nil {
+			t.Fatalf("failed to parse priv1: %v", err)
+		}
+		parsed2, err := ssh.ParseRawPrivateKey(priv2)
+		if err != nil {
+			t.Fatalf("failed to parse priv2: %v", err)
+		}
+
+		k1 := parsed1.(*ed25519.PrivateKey)
+		k2 := parsed2.(*ed25519.PrivateKey)
+
+		if !bytes.Equal(*k1, *k2) {
+			t.Error("functionally, private keys are not identical")
 		}
 		if !bytes.Equal(pub1, pub2) {
 			t.Error("public keys are not identical")

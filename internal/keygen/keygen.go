@@ -27,7 +27,7 @@ func Generate(seed [32]byte, comment string) (*SSHKeyPair, error) {
 		return nil, fmt.Errorf("failed to create SSH public key: %w", err)
 	}
 
-	// 3. ssh.MarshalPrivateKey(privateKey, comment) -> PEM block
+	// 3. ssh.MarshalPrivateKey(privKey, comment) -> PEM block
 	pemBlock, err := ssh.MarshalPrivateKey(privKey, comment)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal private key: %w", err)
@@ -42,8 +42,6 @@ func Generate(seed [32]byte, comment string) (*SSHKeyPair, error) {
 	// Add comment to public key if provided
 	if comment != "" {
 		// MarshalAuthorizedKey returns "type key\n", we want "type key comment\n"
-		// Actually MarshalAuthorizedKey returns "type key\n"
-		// We can just append the comment before the newline
 		if len(pubBytes) > 0 && pubBytes[len(pubBytes)-1] == '\n' {
 			pubBytes = append(pubBytes[:len(pubBytes)-1], []byte(" "+comment+"\n")...)
 		}

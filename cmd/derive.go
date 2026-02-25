@@ -39,7 +39,7 @@ var deriveCmd = &cobra.Command{
 			}
 			input = string(byteMnemonic)
 		} else {
-			reader := bufio.NewReader(os.Stdin)
+			reader := bufio.NewReader(cmd.InOrStdin())
 			input, err = reader.ReadString('\n')
 			if err != nil && err.Error() != "EOF" {
 				return fmt.Errorf("failed to read mnemonic from stdin: %w", err)
