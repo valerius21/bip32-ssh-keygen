@@ -17,3 +17,14 @@
 # Project specific
 bip32-ssh-keygen
 .sisyphus/evidence/
+
+# Devenv
+.devenv*
+devenv.local.nix
+devenv.local.yaml
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
