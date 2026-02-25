@@ -1,9 +1,9 @@
 {
-  "active_plan": "/home/valerius/code/bip32-ssh-keygen/.sisyphus/plans/bip32-ssh-keygen.md",
-  "started_at": "2026-02-25T15:37:07.259Z",
+  "active_plan": "/home/valerius/code/bip32-ssh-keygen/.sisyphus/plans/full-project-overhaul.md",
+  "started_at": "2026-02-25T16:56:33.862Z",
   "session_ids": [
-    "ses_36aa148e5ffeO0bdwtFwnKdtxA"
+    "ses_36a5e5cdbffeZpXC5ZOkO0MI9T"
   ],
-  "plan_name": "bip32-ssh-keygen",
+  "plan_name": "full-project-overhaul",
   "agent": "atlas"
 }

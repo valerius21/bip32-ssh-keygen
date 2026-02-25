@@ -26,3 +26,36 @@
 For any Go changes, verify with:
 1. `nix-shell -p go --run 'CGO_ENABLED=0 go build ./...'` - build all packages
 2. `nix-shell -p go --run 'CGO_ENABLED=0 go mod verify'` - verify module integrity
+
+## Wave 1 Task 4: Module Path Rename
+
+**Date**: Wed Feb 25 2026
+
+### Task Completion
+- Renamed module path from `github.com/valerius/bip32-ssh-keygen` to `github.com/valerius21/bip32-ssh-keygen`
+- Updated 6 files: go.mod, main.go, cmd/root.go, cmd/derive/derive.go, cmd/generate/generate.go, cmd/tui/tui.go
+- Found and replaced 13 import statements across 5 files
+- Verified: `go build ./...` succeeds with exit code 0
+- Verified: No old module path references remain (grep output: 0)
+
+### Files Modified
+1. `go.mod` - Module declaration line 1
+2. `main.go` - Import statement line 3
+3. `cmd/root.go` - 3 import statements (lines 11-13)
+4. `cmd/derive/derive.go` - 4 import statements (lines 11-14)
+5. `cmd/generate/generate.go` - 1 import statement (line 8)
+6. `cmd/tui/tui.go` - 4 import statements (lines 13-16)
+
+### Renaming Pattern
+- Use Edit tool with LINE#ID for precise module path replacements
+- Always rename ALL occurrences atomically (module declaration + all imports)
+- Run `go mod tidy` after renaming to update go.sum
+- Verify with `grep -r 'old_path' --include='*.go' . | wc -l` should output 0
+- Build verification: `nix-shell -p go --run 'CGO_ENABLED=0 go build ./...'`
+
+### Go Module Renaming Lessons
+- Module path changes affect go.mod and all import statements
+- Package names remain unchanged (only import paths change)
+- `go mod tidy` automatically updates go.sum with new module paths
+- Test failures in output are pre-existing issues (stderr capture), not related to rename
+

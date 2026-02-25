@@ -372,7 +372,7 @@ Max Concurrent: 3 (Waves 0-3)
 
 ### Wave 1 — Module Rename + Environment
 
-- [ ] 4. Atomic module path rename
+- [x] 4. Atomic module path rename
 
   **What to do**:
   - Change `go.mod` line 1 from `module github.com/valerius/bip32-ssh-keygen` to `module github.com/valerius21/bip32-ssh-keygen`.

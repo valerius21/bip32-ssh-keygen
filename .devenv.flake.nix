@@ -17,7 +17,7 @@
   ];
   hostname = "niccolo";
   username = "valerius";
-  git_root = null;
+  git_root = "/home/valerius/code/bip32-ssh-keygen";
   secretspec = null;
 };
     in
@@ -54,7 +54,7 @@
   ];
   hostname = "niccolo";
   username = "valerius";
-  git_root = null;
+  git_root = "/home/valerius/code/bip32-ssh-keygen";
   secretspec = null;
 };
       devenv =

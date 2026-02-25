@@ -1,4 +1,4 @@
-module github.com/valerius/bip32-ssh-keygen
+module github.com/valerius21/bip32-ssh-keygen
 
 go 1.25.7
 

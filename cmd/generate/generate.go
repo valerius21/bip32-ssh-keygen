@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/valerius/bip32-ssh-keygen/internal/mnemonic"
+	"github.com/valerius21/bip32-ssh-keygen/internal/mnemonic"
 )
 
 // Cmd returns the generate command.

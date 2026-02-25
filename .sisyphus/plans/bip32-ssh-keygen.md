@@ -178,7 +178,7 @@ Max Concurrent: 4 (Wave 2)
 
 ## TODOs
 
-- [ ] 1. devenv Setup
+- [x] 1. devenv Setup
 
   **What to do**:
   - Create `devenv.yaml` pointing to devenv.nix
@@ -238,7 +238,7 @@ Max Concurrent: 4 (Wave 2)
   - Files: `devenv.nix`, `devenv.yaml`
   - Pre-commit: `devenv shell -- go version`
 
-- [ ] 2. Go Module + Cobra Scaffold
+- [x] 2. Go Module + Cobra Scaffold
 
   **What to do**:
   - TDD: Write a test that imports the root command and verifies it exists
@@ -318,7 +318,7 @@ Max Concurrent: 4 (Wave 2)
 
 ---
 
-- [ ] 3. SLIP-0010 Ed25519 HD Key Derivation (TDD)
+- [x] 3. SLIP-0010 Ed25519 HD Key Derivation (TDD)
 
   **What to do**:
   - Create `internal/slip10/slip10.go` and `internal/slip10/slip10_test.go`
@@ -412,7 +412,7 @@ Max Concurrent: 4 (Wave 2)
   - Files: `internal/slip10/slip10.go`, `internal/slip10/slip10_test.go`
   - Pre-commit: `go test ./internal/slip10/...`
 
-- [ ] 4. BIP44 Derivation Path Parser (TDD)
+- [x] 4. BIP44 Derivation Path Parser (TDD)
 
   **What to do**:
   - Create `internal/path/path.go` and `internal/path/path_test.go`
@@ -493,7 +493,7 @@ Max Concurrent: 4 (Wave 2)
 
 ---
 
-- [ ] 5. BIP39 Mnemonic Wrapper (TDD)
+- [x] 5. BIP39 Mnemonic Wrapper (TDD)
 
   **What to do**:
   - Create `internal/mnemonic/mnemonic.go` and `internal/mnemonic/mnemonic_test.go`
@@ -579,7 +579,7 @@ Max Concurrent: 4 (Wave 2)
   - Files: `internal/mnemonic/mnemonic.go`, `internal/mnemonic/mnemonic_test.go`, `go.mod`, `go.sum`
   - Pre-commit: `go test ./internal/mnemonic/...`
 
-- [ ] 6. SSH Key Generation from Ed25519 Seed (TDD)
+- [x] 6. SSH Key Generation from Ed25519 Seed (TDD)
 
   **What to do**:
   - Create `internal/keygen/keygen.go` and `internal/keygen/keygen_test.go`
@@ -687,7 +687,7 @@ Max Concurrent: 4 (Wave 2)
 
 ---
 
-- [ ] 7. `generate` Subcommand
+- [x] 7. `generate` Subcommand
 
   **What to do**:
   - Create `cmd/generate.go` and `cmd/generate_test.go`
@@ -781,7 +781,7 @@ Max Concurrent: 4 (Wave 2)
   - Files: `cmd/generate.go`, `cmd/generate_test.go`, `cmd/root.go`
   - Pre-commit: `go test ./cmd/... && go build .`
 
-- [ ] 8. `derive` Subcommand
+- [x] 8. `derive` Subcommand
 
   **What to do**:
   - Create `cmd/derive.go` and `cmd/derive_test.go`
@@ -919,7 +919,7 @@ Max Concurrent: 4 (Wave 2)
 
 ---
 
-- [ ] 9. End-to-End Integration Test + Build Verification
+- [x] 9. End-to-End Integration Test + Build Verification
 
   **What to do**:
   - Create `integration_test.go` (top-level, tests the full binary)
@@ -1020,19 +1020,19 @@ Max Concurrent: 4 (Wave 2)
 ---
 ## Final Verification Wave
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle` (PASSED)
   Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, run command). For each "Must NOT Have": search codebase for forbidden patterns — reject with file:line if found. Check evidence files exist in .sisyphus/evidence/. Compare deliverables against plan.
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-- [ ] F2. **Code Quality Review** — `unspecified-high`
+- [x] F2. **Code Quality Review** — `unspecified-high` (PASSED)
   Run `go vet ./...` + `go build ./...` + `go test ./...`. Review all files for: unchecked errors, panic-prone code, hardcoded secrets, unused imports, empty error handling. Check for AI slop: excessive comments, over-abstraction, generic variable names.
   Output: `Build [PASS/FAIL] | Vet [PASS/FAIL] | Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
 
-- [ ] F3. **Real Manual QA** — `unspecified-high`
+- [x] F3. **Real Manual QA** — `unspecified-high` (PASSED)
   Start from clean state. Build binary. Run `generate` — verify mnemonic validity. Run `derive` with that mnemonic — verify SSH key works. Run `derive` again with same input — verify identical output (determinism). Test interactive mode and piped mode. Test `--force` overwrite. Test invalid mnemonic. Test `ssh-keygen -l -f` on output. Save evidence to `.sisyphus/evidence/final-qa/`.
   Output: `Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N tested] | VERDICT`
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep` (PASSED)
   For each task: read "What to do", read actual diff. Verify 1:1 — everything in spec was built, nothing beyond spec was built. Check "Must NOT Have" compliance (no SSH agent, no GUI, no config file, no batch mode). Flag unaccounted files.
   Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | Unaccounted [CLEAN/N files] | VERDICT`
 
