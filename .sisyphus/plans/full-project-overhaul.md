@@ -327,7 +327,7 @@ Max Concurrent: 3 (Waves 0-3)
 
   **Commit**: NO (groups with Wave 0)
 
-- [ ] 3. Fix go.sum and missing dependencies
+- [x] 3. Fix go.sum and missing dependencies
 
   **What to do**:
   - Run `nix-shell -p go --run 'CGO_ENABLED=0 go get github.com/charmbracelet/bubbles/textinput@v1.0.0'` to add missing `github.com/atotto/clipboard` transitive dependency to go.sum.
