@@ -79,3 +79,101 @@ For any Go changes, verify with:
 - .devenv*, devenv.local.nix, devenv.local.yaml
 - .direnv
 - .pre-commit-config.yaml
+
+## Wave 2 Task 7: Makefile Creation
+
+**Pattern: Go project makefile**
+- All Go targets must use `CGO_ENABLED=0` prefix
+- Use `.PHONY` declaration for ALL targets (build, test, lint, clean, release-dry-run)
+- Make `build` the default target (first target in file)
+- Keep targets simple: single command per target
+- `build`: `CGO_ENABLED=0 go build -o bip32-ssh-keygen .`
+- `test`: `CGO_ENABLED=0 go test -v -race -coverprofile=coverage.out ./...`
+- `lint`: `golangci-lint run ./...`
+- `clean`: `rm -f bip32-ssh-keygen coverage.out`
+- `release-dry-run`: `goreleaser release --snapshot --clean`
+
+**Verification notes:**
+- Binary verified working: `./bip32-ssh-keygen --help` shows correct usage
+- Clean verified working: `rm -f` removes both binary and coverage.out
+- Make not available in PATH - commands verified directly
+
+**Go not in PATH constraint:**
+- Go must be invoked via `nix-shell -p go --run 'CGO_ENABLED=0 go <command>'`
+- Make targets will work when make is installed; individual commands verified
+
+## Wave 2 Task 8: GoReleaser Configuration
+
+**Date**: Wed Feb 25 2026
+
+### Task Completion
+- Created .goreleaser.yaml with version 2 configuration
+- Configured builds with CGO_ENABLED=0 and multiplatform support (linux, windows, darwin × amd64, arm64)
+- Configured archives with Windows zip override using new format_overrides syntax (no `format` field)
+- Added SHA256 checksums generation
+- Configured changelog filtering to exclude docs:, test:, chore:
+- Set release target to github.com/valerius21/bip32-ssh-keygen
+- Verified: `goreleaser check` passes with exit code 0
+
+### Key Findings
+- GoReleaser v2 requires `version: 2` at top of config file
+- Old `archives.format` field is deprecated - remove it entirely and use only `format_overrides`
+- Windows zip override simplified to just list `goos: windows` without specifying format (zip is automatic)
+- Archives name template: `"{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"` creates cross-platform consistent naming
+- Checksum name template: `checksums.txt` (standard practice)
+
+### GoReleaser v2 Configuration Pattern
+- Use `version: 2` at top of config
+- Builds section: `env: [CGO_ENABLED=0]` + `goos: [linux, windows, darwin]` + `goarch: [amd64, arm64]`
+- Archives: NO `format` field, only `format_overrides: [{goos: windows}]` for zip on Windows
+- Checksum: `name_template: checksums.txt` + `algorithm: sha256`
+- Changelog: `sort: asc` + `filters.exclude: ["^docs:", "^test:", "^chore:"]`
+- Release: `github.owner: valerius21` + `github.name: bip32-ssh-keygen`
+
+### Verification Pattern
+- Run: `nix-shell -p goreleaser --run 'goreleaser check'`
+- Success: "1 configuration file(s) validated" + exit code 0
+- Warning: "only version: 2 configuration files are supported" means you need to add `version: 2`
+
+### Deprecated Fields to Avoid
+- `archives.format: tar.gz` - removed in v2, default is now implicit
+- `format_overrides.format: zip` - simplified to just `goos: windows`
+  EOF
+## GitHub Workflows Setup (Wave 2, Task 9)
+
+### Workflow Patterns Used
+
+**CI Workflow (.github/workflows/ci.yml):**
+- Triggers: push to main/master + pull_request
+- Minimal test job with:
+  - actions/checkout@v4
+  - actions/setup-go@v5 with go-version-file: go.mod
+  - Build step: CGO_ENABLED=0 go build ./...
+  - Test step: CGO_ENABLED=0 go test -v -race ./...
+- Permissions: contents: read (security best practice)
+
+**Release Workflow (.github/workflows/release.yml):**
+- Triggers: push with tags matching 'v*'
+- Single release job with:
+  - actions/checkout@v4 with fetch-depth: 0 (required for GoReleaser changelog)
+  - actions/setup-go@v5 with go-version-file: go.mod
+  - goreleaser/goreleaser-action@v7 with args: release --clean
+- Permissions: contents: write (required for GitHub releases)
+- GITHUB_TOKEN automatically passed for release creation
+
+### Key Decisions
+
+- No multi-OS matrix in CI (plan specified: ubuntu-latest only)
+- No codecov, security scanning, or linting (local devenv only)
+- No Docker login or signing in release workflow (minimal per plan)
+- Using CGO_ENABLED=0 for consistency and faster builds
+- Using fetch-depth: 0 in release so GoReleaser can generate changelogs
+
+### YAML Validation
+
+Both files validated with custom Python checker (PyYAML not available):
+- ✓ ci.yml - 29 lines, valid structure
+- ✓ release.yml - 30 lines, valid structure
+
+No tabs, proper indentation (2-space multiples), no trailing spaces.
+

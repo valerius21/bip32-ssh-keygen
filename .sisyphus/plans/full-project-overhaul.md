@@ -542,7 +542,7 @@ Max Concurrent: 3 (Waves 0-3)
 
 ### Wave 2 — Tooling + CI/CD
 
-- [ ] 7. Create Makefile
+- [x] 7. Create Makefile
 
   **What to do**:
   - Create a `Makefile` at project root with these targets:
@@ -596,7 +596,7 @@ Max Concurrent: 3 (Waves 0-3)
 
   **Commit**: NO (groups with Wave 2)
 
-- [ ] 8. Create .goreleaser.yaml
+- [x] 8. Create .goreleaser.yaml
 
   **What to do**:
   - Create `.goreleaser.yaml` at project root with:
@@ -644,7 +644,7 @@ Max Concurrent: 3 (Waves 0-3)
 
   **Commit**: NO (groups with Wave 2)
 
-- [ ] 9. Create GitHub workflows (CI + Release)
+- [x] 9. Create GitHub workflows (CI + Release)
 
   **What to do**:
   - Create `.github/workflows/ci.yml`:
