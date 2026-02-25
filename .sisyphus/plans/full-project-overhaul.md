@@ -269,7 +269,7 @@ Max Concurrent: 3 (Waves 0-3)
 
   **Commit**: NO (groups with Wave 0)
 
-- [ ] 2. Fix test file bugs
+- [x] 2. Fix test file bugs
 
   **What to do**:
   - Fix `cmd/generate/generate_test.go`: remove duplicate import block (lines 3-10 likely duplicated). Ensure single clean import block with `bytes`, `fmt`, `strings`, `testing`, `testify/assert`, `testify/require`.

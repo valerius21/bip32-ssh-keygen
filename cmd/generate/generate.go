@@ -3,7 +3,6 @@ package generate
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/valerius/bip32-ssh-keygen/internal/mnemonic"
