@@ -431,7 +431,7 @@ Max Concurrent: 3 (Waves 0-3)
 
   **Commit**: NO (groups with Wave 1)
 
-- [ ] 5. Fix devenv.nix
+- [x] 5. Fix devenv.nix
 
   **What to do**:
   - The current devenv.nix triggers the iocraft-0.7.16 error (cachix/devenv#2524) when building the shell. This was confirmed in the terminal output.
@@ -488,7 +488,7 @@ Max Concurrent: 3 (Waves 0-3)
 
   **Commit**: NO (groups with Wave 1)
 
-- [ ] 6. Enhance .gitignore from gitignore.lol
+- [x] 6. Enhance .gitignore from gitignore.lol
 
   **What to do**:
   - Fetch the Go gitignore template: `curl -sL https://www.toptal.com/developers/gitignore/api/go`

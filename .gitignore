@@ -28,3 +28,11 @@ devenv.local.yaml
 
 # pre-commit
 .pre-commit-config.yaml
+
+# gitignore.lol - Go
+# Go workspace file
+go.work
+
+# GoReleaser
+.goreleaser-dist/
+dist/

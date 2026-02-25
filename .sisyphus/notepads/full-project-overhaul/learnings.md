@@ -59,3 +59,23 @@ For any Go changes, verify with:
 - `go mod tidy` automatically updates go.sum with new module paths
 - Test failures in output are pre-existing issues (stderr capture), not related to rename
 
+
+## Gitignore Enhancement (Wave 1 - Task 6)
+
+**Pattern: Merging gitignore templates**
+- Use `curl -sL https://www.toptal.com/developers/gitignore/api/go` to fetch Go template
+- Preserve existing project-specific entries at all costs
+- Add new entries under section header (`# gitignore.lol - Go`) for clarity
+- Add build-tool specific entries manually (.goreleaser-dist/, dist/)
+
+**Key finding:**
+- Most gitignore.lol Go entries already present (*.exe, *.dll, *.so, *.dylib, *.test, *.out, vendor/)
+- Only unique addition: `go.work` (Go 1.18+ workspace file)
+- Always verify existing entries preserved before appending
+
+**Project-specific entries preserved:**
+- bip32-ssh-keygen
+- .sisyphus/evidence/
+- .devenv*, devenv.local.nix, devenv.local.yaml
+- .direnv
+- .pre-commit-config.yaml

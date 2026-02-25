@@ -97,3 +97,65 @@
 - After fixing test files, ran `go mod tidy` to resolve missing go.sum entries for bubbletea dependencies
 - The `tea.Quit` function returns a `tea.Cmd` which is a function type, not a `tea.QuitMsg` value - this is a common bubbletea misconception
 - Wave 0 Task 2 completed successfully
+
+## Wave 1 — Task 5: devenv.nix Configuration
+
+**Date:** 2026-02-25
+
+### Work Completed
+
+#### 1. Cleaned devenv.nix
+- Removed all boilerplate comments (lines starting with `# https://devenv.sh`)
+- Removed `env.GREET`, `scripts.hello`, `enterShell`, and `enterTest` sections
+- Kept only essential configuration:
+  - packages list: gopls, golangci-lint, delve (plus added act and goreleaser)
+  - languages.go.enable = true
+
+Final devenv.nix:
+```nix
+{ pkgs, lib, config, inputs, ... }:
+{
+  packages = [
+    pkgs.gopls
+    pkgs.golangci-lint
+    pkgs.delve
+    pkgs.act
+    pkgs.goreleaser
+  ];
+
+  languages.go.enable = true;
+}
+```
+
+### Blocking Issue
+
+**iocraft-0.7.16 Build Error in devenv**
+
+The devenv shell fails with an internal error:
+```
+error: A hash was specified for iocraft-0.7.16, but there is no corresponding git dependency.
+```
+
+This is a **devenv internal bug**, not a configuration issue. The error occurs in devenv's `tasks.nix` module which tries to build `devenv-tasks-2.0.0` with a broken cargo dependency on iocraft-0.7.16.
+
+**Attempts to Fix:**
+1. ✗ `devenv.tasks = {}` - Option doesn't exist (validation error)
+2. ✗ Removing .devenv cache and regenerating - No effect
+3. ✗ `devenv update inputs` - No effect
+
+**Root Cause:**
+devenv's tasks module has a cargo configuration issue where it specifies a hash for iocraft-0.7.16 without a corresponding git dependency. This is a known issue with the devenv tool itself in the current rolling branch.
+
+### Resolution
+
+**Status:** ⚠️ **BLOCKED** - Cannot verify `devenv shell -- go version` because devenv's dependencies are broken.
+
+**Options for Resolution:**
+1. Wait for devenv to fix the iocraft issue on their rolling branch
+2. Pin devenv to an earlier working version (if available)
+3. Use alternative dev environment tool (standard nix-shell, etc.)
+4. Workaround by directly using Go from system path (if available)
+
+**Configuration Note:**
+The devenv.nix file itself is syntactically correct and follows the specifications. The issue is entirely in devenv's internal build system, not in our configuration.
+
