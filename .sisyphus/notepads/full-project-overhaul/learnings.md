@@ -177,3 +177,39 @@ Both files validated with custom Python checker (PyYAML not available):
 
 No tabs, proper indentation (2-space multiples), no trailing spaces.
 
+
+## Task: Fix devenv.yaml to resolve iocraft-0.7.16 error
+
+**Date:** 2026-02-25
+
+### Original Problem
+- devenv shell was failing with: "A hash was specified for iocraft-0.7.16, but there is no corresponding git dependency."
+- This was believed to be a known bug in devenv's internal tasks module (cachix/devenv#2524).
+
+### Investigation Findings
+1. **No devenv input needed**: The devenv.yaml initially had no explicit `devenv:` input, which means it uses the default version bundled with the devenv CLI.
+
+2. **Pinning attempts failed**:
+   - `v1.3`: Failed with missing `export`/`exports` attribute error in tasks module
+   - `v1.4`: Failed with Go toolchain configuration error (gopls override issue)
+   - `latest` (explicit): Failed with process-managers configuration error
+
+3. **Solution**: The iocraft error was **transient/intermittent**. Using the default devenv (no explicit pinning) works:
+   - Cleaned cache: `rm -rf .devenv .direnv`
+   - Used default devenv CLI version
+   - Shell built successfully: `devenv shell -- go version` → `go1.25.5 linux/amd64`
+
+### Key Lesson
+The iocraft-0.7.16 error appears to be a transient lockfile/cache issue, not a permanent bug requiring version pinning. The proper fix is:
+1. **Don't pin devenv version** (let CLI use its bundled version)
+2. **Clear devenv cache** when encountering hash-related errors
+3. **Avoid older versions** (v1.3, v1.4) as they have other breaking changes
+
+### For Future Reference
+If you encounter iocraft hash errors:
+```bash
+rm -rf .devenv .direnv
+devenv shell -- [command]
+```
+
+This forces a fresh lockfile resolution which typically resolves transient hash conflicts.
