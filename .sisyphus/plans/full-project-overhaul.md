@@ -859,7 +859,7 @@ Max Concurrent: 3 (Waves 0-3)
 
 ### Wave 4 — Verification
 
-- [ ] 13. Test GitHub workflows with `act`
+- [x] 13. Test GitHub workflows with `act`
 
   **What to do**:
   - Use `act` to test the CI workflow locally:
@@ -908,7 +908,7 @@ Max Concurrent: 3 (Waves 0-3)
 
   **Commit**: NO (groups with Wave 4)
 
-- [ ] 14. Full verification + coverage report
+- [x] 14. Full verification + coverage report
 
   **What to do**:
   - Run full build: `nix-shell -p go --run 'CGO_ENABLED=0 go build ./...'`
