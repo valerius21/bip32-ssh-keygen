@@ -36,3 +36,5 @@ go.work
 # GoReleaser
 .goreleaser-dist/
 dist/
+id_ed*
+.devenv/
