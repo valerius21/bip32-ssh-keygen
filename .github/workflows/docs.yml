@@ -34,7 +34,7 @@ jobs:
         run: go install go.abhg.dev/doc2go@latest
 
       - name: Generate API reference
-        run: |
+        run: doc2go -out ./out -home github.com/${{ github.repository }} ./...
           doc2go -out ./out -home github.com/${{ github.repository }} ./...
           ls -la ./out || echo "out directory not found"
           ls -la ./out/github.com/${{ github.repository }} || echo "package directory not found"
