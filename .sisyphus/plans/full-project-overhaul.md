@@ -710,7 +710,7 @@ Max Concurrent: 3 (Waves 0-3)
 
 ### Wave 3 — Test Coverage
 
-- [ ] 10. Close coverage gaps in internal packages
+- [x] 10. Close coverage gaps in internal packages
 
   **What to do**:
   - Run `nix-shell -p go --run 'CGO_ENABLED=0 go test -coverprofile=cov.out ./internal/... && go tool cover -func=cov.out'` to identify uncovered lines.
@@ -761,7 +761,7 @@ Max Concurrent: 3 (Waves 0-3)
 
   **Commit**: NO (groups with Wave 3)
 
-- [ ] 11. Close coverage gaps in cmd packages
+- [x] 11. Close coverage gaps in cmd packages
 
   **What to do**:
   - Run coverage for cmd packages: `nix-shell -p go --run 'CGO_ENABLED=0 go test -coverprofile=cov.out ./cmd/...'`
@@ -811,7 +811,7 @@ Max Concurrent: 3 (Waves 0-3)
 
   **Commit**: NO (groups with Wave 3)
 
-- [ ] 12. Update integration_test.go for new structure
+- [x] 12. Update integration_test.go for new structure
 
   **What to do**:
   - Update `integration_test.go` to work with the new module path and cmd structure.

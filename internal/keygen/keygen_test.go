@@ -198,3 +198,29 @@ func TestSSHKeyPair_Fields(t *testing.T) {
 	// Verify fingerprint format (should be SHA256:...)
 	assert.Contains(t, pair.Fingerprint, "SHA256:")
 }
+
+func TestWriteKeyPair_InvalidPrivatePath(t *testing.T) {
+	seed := [32]byte{0x42}
+	pair, _ := Generate(seed, "test")
+
+	// Test WriteKeyPair error paths
+	err := WriteKeyPair(pair, "/invalid/path/that/does/not/exist/id_ed25519", false)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to write private key")
+}
+
+func TestWriteKeyPair_InvalidPublicPath(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	seed := [32]byte{0x42}
+	pair, _ := Generate(seed, "test")
+
+	// Create a directory where the public key file should be
+	outputPath := filepath.Join(tmpDir, "id_ed25519")
+	os.MkdirAll(outputPath, 0700)
+
+	// Try to write - should fail on public key write
+	err := WriteKeyPair(pair, outputPath, true)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to write")
+}

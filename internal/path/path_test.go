@@ -204,3 +204,14 @@ func TestFormatAndParseRoundTrip(t *testing.T) {
 		})
 	}
 }
+
+func TestFormatPath_NonHardened(t *testing.T) {
+		// Test the non-hardened branch (line 107-108 in path.go)
+		indices := []uint32{5}
+		got := FormatPath(indices)
+		assert.Equal(t, "m/5", got)
+
+		indices = []uint32{0x8000002C, 0x80000016, 5, 10}
+		got = FormatPath(indices)
+		assert.Equal(t, "m/44'/22'/5/10", got)
+}

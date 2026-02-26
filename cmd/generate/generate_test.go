@@ -86,8 +86,16 @@ func TestGenerateCmd_Validation(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				output := buf.String()
-				words := strings.Fields(output)
-				assert.Len(t, words, 24) // Should have mnemonic output (24 words by default)
+				// First line should contain the mnemonic (rest is warning)
+				lines := strings.Split(output, "\n")
+				mnemonic := lines[0]
+				words := strings.Fields(mnemonic)
+				// Parse the word count from the test case for validation
+				expectedCount := 24 // Default when no --words flag specified
+				if tt.words != "" {
+					fmt.Sscanf(tt.words, "%d", &expectedCount)
+				}
+				assert.Equal(t, expectedCount, len(words))
 			}
 		})
 	}

@@ -1,12 +1,14 @@
 package tui
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
-
 func TestInitialModel(t *testing.T) {
 	m := initialModel()
 
@@ -113,16 +115,26 @@ func TestHandleEnter_DerivePath_Invalid(t *testing.T) {
 }
 
 func TestHandleEnter_DeriveOutput(t *testing.T) {
+	// Use temp directory to allow file write
+	tempDir := t.TempDir()
+	outputPath := filepath.Join(tempDir, "test_key")
+
 	m := initialModel()
 	m.screen = screenDeriveOutput
 	m.mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
 	m.derivePath = "m/44'/22'/0'/0'"
-	m.outputInput.SetValue("test_key")
+	m.outputInput.SetValue(outputPath)
 	newM, _ := m.handleEnter()
 	// Should perform derivation and go to result
 	assert.Equal(t, screenResult, newM.(model).screen)
 	assert.NoError(t, newM.(model).resultError)
 	assert.NotEmpty(t, newM.(model).resultMessage)
+	assert.NotEmpty(t, newM.(model).fingerprint)
+	// Verify key files were created
+	_, err := os.Stat(outputPath)
+	assert.NoError(t, err)
+	_, err = os.Stat(outputPath + ".pub")
+	assert.NoError(t, err)
 }
 
 func TestHandleEnter_Result(t *testing.T) {
@@ -202,4 +214,87 @@ func TestNewStyles(t *testing.T) {
 	assert.NotZero(t, s.errorStyle)
 	assert.NotZero(t, s.success)
 	assert.NotZero(t, s.help)
+}
+
+
+func TestPerformDerivation_InvalidPath(t *testing.T) {
+	tempDir := t.TempDir()
+	outputPath := filepath.Join(tempDir, "test_key")
+	
+	m := initialModel()
+	m.mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+	m.derivePath = "invalid/path"
+	m.outputPath = outputPath
+	
+	m.performDerivation()
+	
+	assert.Error(t, m.resultError)
+	assert.Equal(t, screenResult, m.screen)
+}
+
+func TestPerformDerivation_ExistingFile(t *testing.T) {
+	tempDir := t.TempDir()
+	outputPath := filepath.Join(tempDir, "test_key")
+	
+	// Create existing file
+	require.NoError(t, os.WriteFile(outputPath, []byte("existing"), 0600))
+	
+	m := initialModel()
+	m.mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+	m.derivePath = "m/44'/22'/0'/0'"
+	m.outputPath = outputPath
+	
+	m.performDerivation()
+	
+	assert.Error(t, m.resultError)
+	assert.Equal(t, screenResult, m.screen)
+}
+
+func TestUpdate_AllScreens(t *testing.T) {
+	// Test Update on each screen with a key
+	screens := []struct {
+		name   string
+		screen screen
+	}{
+		{"menu", screenMenu},
+		{"generate", screenGenerate},
+		{"deriveInput", screenDeriveInput},
+		{"derivePath", screenDerivePath},
+		{"deriveOutput", screenDeriveOutput},
+		{"result", screenResult},
+	}
+	
+	for _, tc := range screens {
+		t.Run(tc.name, func(t *testing.T) {
+			m := initialModel()
+			m.screen = tc.screen
+			msg := tea.KeyMsg{Type: tea.KeyRunes}
+			newM, _ := m.Update(msg)
+			assert.NotNil(t, newM)
+		})
+	}
+}
+
+func TestUpdate_CtrlC(t *testing.T) {
+	m := initialModel()
+	m.screen = screenMenu
+	msg := tea.KeyMsg{Type: tea.KeyCtrlC}
+	_, cmd := m.Update(msg)
+	assert.NotNil(t, cmd) // Should return tea.Quit
+}
+
+func TestUpdate_RandomKey(t *testing.T) {
+	m := initialModel()
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'A'}}
+	newM, _ := m.Update(msg)
+	assert.NotNil(t, newM)
+}
+
+func TestCmd_RunTUI(t *testing.T) {
+	// Test that Cmd returns a valid command
+	cmd := Cmd()
+	assert.NotNil(t, cmd)
+	assert.Equal(t, "tui", cmd.Name())
+	assert.NotEmpty(t, cmd.Short)
+	assert.NotEmpty(t, cmd.Long)
 }

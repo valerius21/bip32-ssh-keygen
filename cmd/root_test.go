@@ -1,11 +1,11 @@
 package cmd
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
 func TestRootCommand(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -59,4 +59,42 @@ func TestRootCommandHelp(t *testing.T) {
 	assert.NotEmpty(t, RootCmd.Short)
 	assert.NotNil(t, RootCmd.Long)
 	assert.NotEmpty(t, RootCmd.Long)
+}
+
+func TestRootCmd_ExecuteRootCommand(t *testing.T) {
+	// Test that RootCmd.Run (the root handler) displays help
+	buf := new(strings.Builder)
+	RootCmd.SetArgs([]string{})
+	RootCmd.SetOut(buf)
+	RootCmd.SetErr(buf)
+
+	err := RootCmd.Execute()
+
+	assert.NoError(t, err) // Root command runs help without error
+	output := buf.String()
+	assert.Contains(t, output, "generates deterministic") // Should show help
+}
+
+func TestExecute_HandlesError(t *testing.T) {
+	// Test that os.Exit is called when command fails
+	// We can't test os.Exit directly, but we can verify RootCmd returns error
+	buf := new(strings.Builder)
+	RootCmd.SetArgs([]string{"--nonexistent-flag"})
+	RootCmd.SetOut(buf)
+	RootCmd.SetErr(buf)
+
+	err := RootCmd.Execute()
+	assert.Error(t, err) // Invalid flag should return error
+}
+
+func TestRootCmd_VersionFlag(t *testing.T) {
+	buf := new(strings.Builder)
+	RootCmd.SetArgs([]string{"--version"})
+	RootCmd.SetOut(buf)
+	RootCmd.SetErr(buf)
+
+	err := RootCmd.Execute()
+	
+	assert.NoError(t, err)
+	// Version flag should be handled by cobra
 }

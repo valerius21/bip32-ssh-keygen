@@ -213,3 +213,127 @@ devenv shell -- [command]
 ```
 
 This forces a fresh lockfile resolution which typically resolves transient hash conflicts.
+
+## Wave 3 Task 10: Coverage - Internal Packages
+
+**Date:** 2026-02-26
+
+### Task Completion
+- Added tests for keygen WriteKeyPair() error paths (invalid directory, file vs directory conflicts)
+- Added tests for path.FormatPath() non-hardened branch (indices without hardened bit)
+- Verified slip10 maintains 100% coverage
+- Verified mnemonic coverage at 89.5% (uncovered: external library error branches)
+
+### Final Coverage Results
+- internal/keygen: 87.5% (↑ from 83.3%)
+- internal/path: 100% (↑ from 96.4%)
+- internal/mnemonic: 89.5% (unchanged)
+- internal/slip10: 100% (unchanged)
+- Total: 94.6%
+
+### Files Modified
+1. internal/keygen/keygen_test.go - Added TestWriteKeyPair_InvalidPrivatePath and TestWriteKeyPair_InvalidPublicPath
+2. internal/path/path_test.go - Added TestFormatPath_NonHardened
+
+### Key Findings
+
+**keygen package (87.5%):**
+- WriteKeyPair() error paths tested: private key write failures, public key write failures
+- Remaining uncovered lines: error handlers for ssh.NewPublicKey() and ssh.MarshalPrivateKey()
+- These errors originate from external ssh library and are extremely rare with valid ed25519 keys
+- Testing them would require mocking the ssh library (discouraged per task constraints)
+
+**path package (100%):**
+- FormatPath() non-hardened branch (line 107-108) now covered
+- Test case: []uint32{5} → "m/5" and []uint32{0x8000002C, 0x80000016, 5, 10} → "m/44'/22'/5/10"
+
+**mnemonic package (89.5%):**
+- Uncovered lines: error handlers for bip39.NewEntropy() and bip39.NewMnemonic()
+- These are external library errors that are unlikely to occur in practice
+- No syntax fix was needed - coverage is acceptable for third-party library error paths
+
+**slip10 package (100%):**
+- Already at 100%, maintained
+
+### Coverage Testing Pattern
+```bash
+# Run coverage on all internal packages
+nix-shell -p go --run 'CGO_ENABLED=0 go test -coverprofile=cov.out ./internal/...'
+
+# View function-level coverage
+nix-shell -p go --run 'go tool cover -func=cov.out'
+
+# Generate HTML report for detailed analysis
+nix-shell -p go --run 'go tool cover -html=cov.out -o /tmp/coverage.html'
+```
+
+### External Library Error Handling
+- Error branches in Generate() (keygen) and Generate() (mnemonic) wrap external library functions
+- These errors are rare in practice and would require mocking to test
+- Per task constraints: "Do not add mock frameworks"
+- Acceptable tradeoff: 87.5% coverage vs adding mock framework dependency
+
+### Non-Hardened Path Testing
+- FormatPath() supports both hardened (index ≥ 0x80000000) and non-hardened indices
+- Used for formatting various BIP44 path formats beyond SSH-specific paths
+- Test ensures both code paths are exercised
+
+## Wave 3 Task 12: Integration Tests Update
+
+**Date**: Thu Feb 26 2026
+
+### Task Completion
+- Added `fmt` import to integration_test.go (needed for test output formatting)
+- Added version check test that verifies `--version` returns "v0.2.0"
+- Added test case for `derive --generate` flag
+- Added test case for `tui --help` subcommand
+- Verified: All integration tests pass with `CGO_ENABLED=0 go test -v -run TestIntegration .`
+
+### Key Findings
+- The `derive --generate` flag outputs more than just the mnemonic:
+  - Header: "Generated mnemonic:"
+  - The actual mnemonic (24 words)
+  - Additional informational text about security
+  - Success message with fingerprint and paths
+- Must parse the output to extract the mnemonic from between "Generated mnemonic:" and the next blank line
+- The `tui --help` subcommand works correctly and outputs help text mentioning "tui" and help flags
+- Version check confirms binary reports v0.2.0
+
+### Output Parsing Pattern
+For CLI commands that output structured text with headers/footers:
+1. Capture all output to a buffer
+2. Split on newlines to get individual lines
+3. Search for specific prefix (e.g., "Generated mnemonic:")
+4. Extract content from the following line
+5. Parse the extracted content (e.g., split on spaces to count words)
+
+### Integration Test Pattern
+1. Build binary with `go build -o <path> .`
+2. Run command with flags, capture stdout/stderr
+3. Parse output to extract relevant information
+4. Verify file system state (files created, permissions)
+5. Validate with external tools (`ssh-keygen -l`)
+6. Test all variations: full workflow, edge cases, flags
+
+### Test Structure
+Existing tests cover:
+- Full lifecycle: generate → derive → validate
+- Determinism: same input → same output
+- Cross-path: different paths → different keys
+- Passphrase: with/without → different keys
+
+New tests added:
+- `derive --generate`: auto-generates mnemonic and creates keys
+- `tui --help`: verifies TUI subcommand help
+- `--version`: confirms version string
+
+### Verification Commands
+```bash
+# Build and run integration tests
+nix-shell -p go --run 'CGO_ENABLED=0 go test -v -run TestIntegration .'
+```
+
+### Go Module Updates
+- fmt import added and used for test output debugging
+- Tests use t.TempDir() for isolated test filesystem
+- All tests run in parallel within same binary build

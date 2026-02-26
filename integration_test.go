@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -142,6 +143,83 @@ func TestIntegration(t *testing.T) {
 		content2, _ := os.ReadFile(keyPath2)
 		if bytes.Equal(content1, content2) {
 			t.Error("private keys are identical despite different passphrases")
+		}
+	})
+
+	t.Run("Generate flag: derive --generate creates keys and prints mnemonic", func(t *testing.T) {
+		keyPath := filepath.Join(tmpDir, "id_ed25519_generate")
+		
+		genCmd := exec.Command(binPath, "derive", "--generate", "--output", keyPath, "--force")
+		var genOut bytes.Buffer
+		genCmd.Stdout = &genOut
+		if err := genCmd.Run(); err != nil {
+			t.Fatalf("failed to derive with --generate: %v", err)
+		}
+		
+		// Parse the output to extract the mnemonic (between "Generated mnemonic:" and the first blank line)
+		output := genOut.String()
+		lines := strings.Split(output, "\n")
+		var mnemonic string
+		for i, line := range lines {
+			if strings.HasPrefix(line, "Generated mnemonic:") {
+				if i+1 < len(lines) {
+					mnemonic = strings.TrimSpace(lines[i+1])
+					break
+				}
+			}
+		}
+		
+		if mnemonic == "" {
+			t.Fatalf("could not extract mnemonic from output: %s", output)
+		}
+		// Verify mnemonic has expected format (24 words)
+		words := strings.Split(mnemonic, " ")
+		if len(words) != 24 {
+			t.Errorf("expected 24 words in mnemonic, got %d", len(words))
+		}
+		
+		fmt.Printf("Generated mnemonic (first 4 words): %s...\n", strings.Join(words[:4], " "))
+		
+		// Verify key files were created
+		if _, err := os.Stat(keyPath); err != nil {
+			t.Fatalf("private key not created: %v", err)
+		}
+		if _, err := os.Stat(keyPath + ".pub"); err != nil {
+			t.Fatalf("public key not created: %v", err)
+		}
+		// Validate with ssh-keygen
+		verifyCmd := exec.Command("ssh-keygen", "-l", "-f", keyPath)
+		if err := verifyCmd.Run(); err != nil {
+			t.Fatalf("ssh-keygen failed to validate key: %v", err)
+		}
+	})
+
+	t.Run("TUI subcommand: --help works", func(t *testing.T) {
+		tuiCmd := exec.Command(binPath, "tui", "--help")
+		out, err := tuiCmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("tui --help failed: %v, output: %s", err, string(out))
+		}
+		
+		output := string(out)
+		if !strings.Contains(output, "tui") {
+			t.Error("tui --help output does not mention 'tui'")
+		}
+		if !strings.Contains(output, "-h") && !strings.Contains(output, "--help") {
+			t.Error("tui --help output does not mention help flag")
+		}
+	})
+
+	t.Run("Version check", func(t *testing.T) {
+		versionCmd := exec.Command(binPath, "--version")
+		out, err := versionCmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("--version failed: %v, output: %s", err, string(out))
+		}
+		
+		output := string(out)
+		if !strings.Contains(output, "v0.2.0") {
+			t.Errorf("expected version v0.2.0 in output, got: %s", output)
 		}
 	})
 }
