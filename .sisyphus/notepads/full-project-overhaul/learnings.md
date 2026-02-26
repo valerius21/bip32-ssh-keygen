@@ -411,3 +411,76 @@ nix-shell -p act --run 'act push --workflows .github/workflows/<filename> --dryr
 - Act requires Docker to be available (unix:///var/run/docker.sock)
 - Dry-run mode validates syntax and workflow structure without executing steps
 - Minimum acceptance criteria met: both workflows listed, no YAML errors in dry-run
+
+## TUI Generate Screen Enhancement (Full Project Overhaul)
+
+**Date:** Thu Feb 26 2026
+
+### Task Completion
+- Modified `cmd/tui/tui.go` to display 24-word mnemonic in 4×6 grid format
+- Added yes/no prompt after displaying mnemonic with default "yes" on Enter
+- Implemented state handling with `showDerivePrompt` field in model struct
+- Added key handlers for 'y', 'Y', 'n', 'N' to directly accept/reject derive prompt
+- Verified: TUI compiles successfully with `go build ./...`
+- Verified: `bip32-ssh-keygen tui --help` works correctly
+
+### Files Modified
+1. `cmd/tui/tui.go`:
+   - Added `showDerivePrompt bool` field to model struct (line 44)
+   - Modified `viewGenerate()` to display words in 4×6 grid (lines 370-404)
+   - Updated `handleEnter()` to handle screenGenerate with prompt state (lines 220-235)
+   - Added `case tea.KeyRunes` handler for y/n input (lines 179-199)
+   - Fixed missing closing brace for outer switch (line 199-200)
+
+### Key Implementation Details
+
+**Model State:**
+- `showDerivePrompt`: Tracks whether user is viewing mnemonic or derive prompt
+- Initial state: `false` (show mnemonic first on screenGenerate)
+- On first Enter: Sets to `true` and shows yes/no prompt
+- On subsequent Enter (if prompt visible): Defaults to yes and transitions to derive
+
+**Mnemonic Display:**
+- Splits `generatedMnemonic` string on spaces to get word array
+- Iterates 4 words at a time (i += 4)
+- Builds rows with `strings.Join(row, " ")`
+- Results in 6 rows × 4 columns = 24 words
+
+**User Interaction Flow:**
+1. Generate mnemonic → Display 4×6 grid
+2. Press Enter → Show "Generate SSH key from this mnemonic? [Y/n]:"
+3. Press Enter, 'y', or 'Y' → Transition to derive input with mnemonic pre-filled
+4. Press 'n' or 'N' → Return to menu
+
+**Key Handlers:**
+- `tea.KeyRunes` with 'y'/'Y' → Yes, transition to derive
+- `tea.KeyRunes` with 'n'/'N' → No, return to menu  
+- `tea.KeyEnter` on `showDerivePrompt=false` → Show prompt
+- `tea.KeyEnter` on `showDerivePrompt=true` → Yes, transition to derive (default)
+
+### Bug Fixed During Implementation
+Accidentally removed closing brace for outer `switch msg.(type)` when adding KeyRunes case. Original structure had:
+```go
+switch msg := msg.(type) {
+  case tea.WindowSizeMsg: ...
+  case tea.KeyMsg:
+    switch msg.Type {
+      case tea.KeyRunes: ...
+    } // close inner switch
+} // close outer switch  <-- This was removed
+```
+
+Fixed by adding back the closing braces on lines 199-200 with comments for clarity.
+
+### Verification Commands
+```bash
+# Build to verify compilation
+nix-shell -p go nixpkgs#gcc --run 'CGO_ENABLED=0 go build ./...'
+
+# Test TUI help
+./bip32-ssh-keygen tui --help
+
+# Launch TUI for manual testing
+./bip32-ssh-keygen tui
+```
+

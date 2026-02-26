@@ -37,9 +37,10 @@ type model struct {
 	cursor      int
 	menuItems   []string
 
-	// Generate state
+// Generate state
 	generatedMnemonic string
 	wordCount         int
+	showDerivePrompt  bool // Tracks if we're showing the derive prompt on generate screen
 
 	// Derive state
 	mnemonicInput     textinput.Model
@@ -175,8 +176,28 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 			}
-		}
-	}
+		case tea.KeyRunes:
+			// Handle y/n on generate screen with derive prompt
+			if m.screen == screenGenerate && m.showDerivePrompt {
+				runes := msg.Runes
+				if len(runes) > 0 {
+					switch runes[0] {
+					case 'y', 'Y':
+						// Yes: transition to derive with pre-filled mnemonic
+						m.screen = screenDeriveInput
+						m.mnemonicInput.SetValue(m.generatedMnemonic)
+						m.mnemonic = m.generatedMnemonic
+						m.mnemonicInput.Focus()
+						return m, nil
+					case 'n', 'N':
+						// No: return to menu
+						m.screen = screenMenu
+						return m, nil
+					}
+				}
+			}
+		} // closes case tea.KeyMsg (switch msg.Type)
+	} // closes switch msg.(type)
 
 	// Update text inputs based on current screen
 	switch m.screen {
@@ -198,17 +219,18 @@ func (m model) handleEnter() (tea.Model, tea.Cmd) {
 	switch m.screen {
 	case screenMenu:
 		switch m.cursor {
-		case 0: // Generate
-			m.screen = screenGenerate
-			mn, err := mnemonic.Generate(m.wordCount)
-			if err != nil {
-				m.resultError = err
-				m.screen = screenResult
-			} else {
+			case 0: // Generate
+				m.screen = screenGenerate
+				mn, err := mnemonic.Generate(m.wordCount)
+				if err != nil {
+					m.resultError = err
+					m.screen = screenResult
+					return m, nil
+				}
 				m.generatedMnemonic = mn
-			}
-			return m, nil
-		case 1: // Derive
+				m.showDerivePrompt = false // Show mnemonic first
+				return m, nil
+			case 1: // Derive
 			m.screen = screenDeriveInput
 			m.mnemonicInput.Focus()
 			return m, nil
@@ -216,9 +238,19 @@ func (m model) handleEnter() (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 
-	case screenGenerate:
-		m.screen = screenMenu
-		return m, nil
+case screenGenerate:
+		if !m.showDerivePrompt {
+			// First Enter press: show yes/no prompt
+			m.showDerivePrompt = true
+			return m, nil
+		} else {
+			// Second Enter press: default yes, transition to derive
+			m.screen = screenDeriveInput
+			m.mnemonicInput.SetValue(m.generatedMnemonic)
+			m.mnemonic = m.generatedMnemonic
+			m.mnemonicInput.Focus()
+			return m, nil
+		}
 
 	case screenDeriveInput:
 		m.mnemonic = strings.TrimSpace(m.mnemonicInput.Value())
@@ -370,9 +402,25 @@ func (m model) viewGenerate(s styles) string {
 	var b strings.Builder
 
 	b.WriteString(s.title.Render("📝 Generated Mnemonic") + "\n\n")
-	b.WriteString(s.mnemonic.Render(m.generatedMnemonic) + "\n\n")
-	b.WriteString(s.subtitle.Render("Write down these words and store them securely.") + "\n")
-	b.WriteString(s.help.Render("press enter to return to menu"))
+
+	// Split mnemonic into words and display in 4x6 grid
+	words := strings.Split(m.generatedMnemonic, " ")
+	for i := 0; i < len(words); i += 4 {
+		end := i + 4
+		if end > len(words) {
+			end = len(words)
+		}
+		row := words[i:end]
+		b.WriteString(strings.Join(row, " ") + "\n")
+	}
+
+	b.WriteString("\n" + s.subtitle.Render("Write down these words and store them securely.") + "\n")
+
+	if m.showDerivePrompt {
+		b.WriteString("\n" + s.help.Render("Generate SSH key from this mnemonic? [Y/n]: "))
+	} else {
+		b.WriteString("\n" + s.help.Render("press enter to continue"))
+	}
 
 	return b.String()
 }
