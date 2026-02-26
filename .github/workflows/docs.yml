@@ -1,0 +1,57 @@
+name: Publish API Reference
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      head:
+        description: "Git commit to publish documentation for."
+        required: true
+        type: string
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build website
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.head || github.ref }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: true
+
+      - name: Install doc2go
+        run: go install go.abhg.dev/doc2go@latest
+
+      - name: Generate API reference
+        run: doc2go -home github.com/${{ github.repository }} ./...
+
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
+
+  publish:
+    name: Publish website
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
