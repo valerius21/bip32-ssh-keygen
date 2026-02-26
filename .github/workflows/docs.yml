@@ -34,7 +34,7 @@ jobs:
         run: go install go.abhg.dev/doc2go@latest
 
       - name: Generate API reference
-        run: doc2go -home github.com/${{ github.repository }} ./...
+        run: doc2go -out ./out -home github.com/${{ github.repository }} ./...
 
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v3
