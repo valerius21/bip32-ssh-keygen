@@ -1,6 +1,6 @@
 module github.com/valerius21/bip32-ssh-keygen
 
-go 1.25.7
+go 1.25
 
 require (
 	github.com/blinklabs-io/go-bip39 v0.2.0

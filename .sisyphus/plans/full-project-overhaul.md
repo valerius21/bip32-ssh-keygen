@@ -956,7 +956,7 @@ Max Concurrent: 3 (Waves 0-3)
 
 ### Wave 5 — Git
 
-- [ ] 15. Git add + commit
+- [x] 15. Git add + commit
 
   **What to do**:
   - Stage all changed, added, and deleted files: `git add -A`
