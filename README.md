@@ -54,4 +54,4 @@ The derivation path is hardened-only, as required by Ed25519.
 
 ## License
 
-MIT
+GPL-2.0
