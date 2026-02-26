@@ -62,9 +62,23 @@ func TestHandleEnter_Menu(t *testing.T) {
 func TestHandleEnter_Generate(t *testing.T) {
 	m := initialModel()
 	m.screen = screenGenerate
+	m.generatedMnemonic = "test mnemonic for testing purposes"
+	
+	// First Enter: should show derive prompt
 	newM, _ := m.handleEnter()
-	assert.Equal(t, screenMenu, newM.(model).screen)
+	assert.Equal(t, screenGenerate, newM.(model).screen)
+	assert.True(t, newM.(model).showDerivePrompt)
+	
+	// Second Enter: should transition to derive input with mnemonic pre-filled
+	newM2, _ := newM.(model).handleEnter()
+	assert.Equal(t, screenDeriveInput, newM2.(model).screen)
+	assert.Equal(t, m.generatedMnemonic, newM2.(model).mnemonic)
 }
+
+
+
+
+
 
 func TestHandleEnter_DeriveInput_Empty(t *testing.T) {
 	m := initialModel()
